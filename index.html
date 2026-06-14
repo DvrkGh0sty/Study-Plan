@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Study Timetable</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #17171e;
+    --surface2: #1e1e28;
+    --border: #2c2c3a;
+    --text: #eeeef5;
+    --muted: #6b6b80;
+    --accent: #ff6b47;
+
+    --physci:  #ff5a6e;
+    --maths:   #6b9fff;
+    --cs:      #a78bfa;
+    --english: #4ecf85;
+    --zulu:    #fde68a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 2.5rem 1rem 5rem;
+  }
+
+  header {
+    max-width: 1400px;
+    margin: 0 auto 2.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    animation: fadeIn 0.6s ease both;
+    border-bottom: 2px solid var(--text);
+    padding-bottom: 1.2rem;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  header h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .header-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.8;
+    text-align: right;
+  }
+
+  .legend {
+    max-width: 1400px;
+    margin: 0 auto 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    animation: fadeIn 0.6s 0.1s ease both;
+  }
+
+  .leg {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.25rem 0.7rem 0.25rem 0.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .leg.priority {
+    border-color: color-mix(in srgb, var(--leg-c) 50%, transparent);
+    color: var(--leg-c);
+    background: color-mix(in srgb, var(--leg-c) 8%, var(--surface));
+  }
+
+  .leg-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .week {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1rem;
+  }
+
+  .day-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: slideUp 0.5s ease both;
+  }
+
+  .day-card:nth-child(1){animation-delay:0.05s}
+  .day-card:nth-child(2){animation-delay:0.10s}
+  .day-card:nth-child(3){animation-delay:0.15s}
+  .day-card:nth-child(4){animation-delay:0.20s}
+  .day-card:nth-child(5){animation-delay:0.25s}
+  .day-card:nth-child(6){animation-delay:0.30s}
+  .day-card:nth-child(7){animation-delay:0.35s}
+
+  .day-header {
+    background: var(--surface2);
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .day-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .day-range {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    opacity: 0.5;
+    letter-spacing: 0.06em;
+  }
+
+  .blocks {
+    padding: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .sub-block {
+    border-radius: 8px;
+    border-left: 3px solid var(--c);
+    background: color-mix(in srgb, var(--c) 8%, var(--surface));
+    overflow: hidden;
+  }
+
+  .sub-block.high-priority {
+    border-left-width: 4px;
+    background: color-mix(in srgb, var(--c) 13%, var(--surface));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 18%, transparent);
+  }
+
+  .sub-inner {
+    padding: 0.5rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .sub-info { flex: 1; min-width: 0; }
+
+  .sub-name {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sub-block.high-priority .sub-name {
+    font-weight: 600;
+    color: var(--c);
+  }
+
+  .sub-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .tag-learn {
+    background: color-mix(in srgb, var(--c) 15%, transparent);
+    color: var(--c);
+  }
+
+  .gap-block {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 7px;
+    border: 1px dashed var(--border);
+  }
+
+  .gap-icon { font-size: 0.85rem; flex-shrink: 0; }
+
+  .gap-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    flex: 1;
+  }
+
+  .gap-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--border);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 500px) {
+    .week { grid-template-columns: 1fr; }
+    .header-meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Study<br><em>Plan</em></h1>
+  <div class="header-meta">
+    CIE Syllabus · 7 days/week<br>
+    Phys Sci 2h · Maths/CS 1.5h · Eng/Zulu 1h<br>
+    Physical Science every day
+  </div>
+</header>
+
+<div class="legend">
+  <div class="leg priority" style="--leg-c: var(--physci)">
+    <div class="leg-dot" style="background:var(--physci)"></div>Physical Science
+  </div>
+  <div class="leg"><div class="leg-dot" style="background:var(--maths)"></div>Maths</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--cs)"></div>Computer Sci</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--english)"></div>English</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--zulu)"></div>Zulu</div>
+</div>
+
+<div class="week" id="week"></div>
+
+<script>
+// Duration per subject type:
+//   Physical Science → 2h  (only subject with 2h, can be S1 or S2)
+//   Maths / CS       → 1.5h
+//   English / Zulu   → 1h
+//
+// Times calculated dynamically. 30min break between sessions.
+// Day starts 10:00 AM.
+
+const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+// [slot0, slot1, slot2]
+// physci alternates S1/S2 across the week
+// Priority: Maths (5×) > CS (4×) > English (3×) > Zulu (2×)  — across 14 slots
+const schedule = [
+  ['physci',  'maths',   'english'],  // Mon  – physci S1
+  ['maths',   'physci',  'zulu'   ],  // Tue  – physci S2
+  ['physci',  'maths',   'cs'     ],  // Wed  – physci S1
+  ['cs',      'physci',  'english'],  // Thu  – physci S2
+  ['physci',  'maths',   'cs'     ],  // Fri  – physci S1
+  ['maths',   'physci',  'zulu'   ],  // Sat  – physci S2
+  ['physci',  'cs',      'english'],  // Sun  – physci S1
+];
+
+const subjectMeta = {
+  physci:  { label: 'Physical Science', cssVar: '--physci',  duration: 120, priority: true  },
+  maths:   { label: 'Mathematics',      cssVar: '--maths',   duration: 90,  priority: false },
+  cs:      { label: 'Computer Science', cssVar: '--cs',      duration: 90,  priority: false },
+  english: { label: 'English',          cssVar: '--english', duration: 60,  priority: false },
+  zulu:    { label: 'Zulu',             cssVar: '--zulu',    duration: 60,  priority: false },
+};
+
+function fmtTime(totalMinutes) {
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
+
+function fmtDuration(mins) {
+  return mins === 60 ? '1h' : mins === 90 ? '1.5h' : '2h';
+}
+
+// Session start = 10:00 AM = 600 minutes from midnight
+const DAY_START = 600;
+const BREAK = 30;
+
+function makeSubBlock(subId, startMin) {
+  const meta = subjectMeta[subId];
+  const endMin = startMin + meta.duration;
+  const div = document.createElement('div');
+  div.className = 'sub-block' + (meta.priority ? ' high-priority' : '');
+  div.style.setProperty('--c', `var(${meta.cssVar})`);
+  div.innerHTML = `
+    <div class="sub-inner">
+      <div class="sub-info">
+        <div class="sub-name">${meta.label}</div>
+        <div class="sub-time">${fmtTime(startMin)} – ${fmtTime(endMin)}</div>
+      </div>
+      <div class="tags">
+        <span class="tag tag-learn">${fmtDuration(meta.duration)} Study</span>
+      </div>
+    </div>
+  `;
+  return { el: div, endMin };
+}
+
+function makeGap(icon, label, time) {
+  const div = document.createElement('div');
+  div.className = 'gap-block';
+  div.innerHTML = `
+    <span class="gap-icon">${icon}</span>
+    <span class="gap-label">${label}</span>
+    <span class="gap-time">${time}</span>
+  `;
+  return div;
+}
+
+const week = document.getElementById('week');
+
+const breakIcons = [['☕', 'Break'], ['🌤️', 'Afternoon break']];
+
+days.forEach((day, di) => {
+  const card = document.createElement('div');
+  card.className = 'day-card';
+
+  const daySubs = schedule[di];
+
+  // Calculate end time dynamically
+  let cursor = DAY_START;
+  daySubs.forEach((s, i) => {
+    if (i > 0) cursor += BREAK;
+    cursor += subjectMeta[s].duration;
+  });
+  const endLabel = fmtTime(cursor);
+
+  card.innerHTML = `
+    <div class="day-header">
+      <span class="day-name">${day}</span>
+      <span class="day-range">10:00 AM – ${endLabel}</span>
+    </div>
+    <div class="blocks" id="b${di}"></div>
+  `;
+  week.appendChild(card);
+
+  const blocks = card.querySelector(`#b${di}`);
+
+  let t = DAY_START;
+  daySubs.forEach((subId, i) => {
+    const { el, endMin } = makeSubBlock(subId, t);
+    blocks.appendChild(el);
+    t = endMin;
+
+    if (i < daySubs.length - 1) {
+      const breakEnd = t + BREAK;
+      const [icon, label] = breakIcons[i] || ['⏸️', 'Break'];
+      blocks.appendChild(makeGap(icon, label, `${fmtTime(t)} – ${fmtTime(breakEnd)}`));
+      t = breakEnd;
+    }
+  });
+});
+</script>
+
+</body>
+</html>
